@@ -1,6 +1,13 @@
 # Define the process name you want to monitor
-# read cli input and assign to processName
-$processName = "YourProcessName"
+# Read CLI input and assign to processName
+param (
+    [string]$processName
+)
+
+if (-not $processName) {
+    Write-Host "Please provide a process name."
+    exit
+}
 
 # Function to get SRAM usage of the process
 function Get-SramUsage {
@@ -9,12 +16,13 @@ function Get-SramUsage {
     )
 
     $process = Get-Process -Name $processName -ErrorAction SilentlyContinue
-    if ($process) {
-        $sramUsage = $process.PrivateMemorySize64 / 1MB
-        return $sramUsage
+    if ($null -eq $process) {
+        Write-Output "Process '$processName' not found."
     } else {
-        Write-Output "Process $processName not found."
-        return $null
+        # Calculate SRAM usage in MB
+        $sramUsage = $process.PrivateMemorySize64 / 1MB
+        Write-Output "SRAM Usage: $sramUsage MB"
+        return $sramUsage
     }
 }
 
@@ -22,7 +30,7 @@ function Get-SramUsage {
 while ($true) {
     $sramUsage = Get-SramUsage -processName $processName
     if ($sramUsage -ne $null) {
-        Write-Output "SRAM Usage for $processName: $sramUsage MB"
+        Write-Output "SRAM Usage for ${processName}: $sramUsage MB"
     }
     Start-Sleep -Seconds 5
 }
