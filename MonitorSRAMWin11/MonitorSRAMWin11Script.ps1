@@ -1,4 +1,5 @@
 # Define the process name you want to monitor
+# read cli input and assign to processName
 $processName = "YourProcessName"
 
 # Function to get SRAM usage of the process
@@ -25,3 +26,4 @@ while ($true) {
     }
     Start-Sleep -Seconds 5
 }
+// End of script
