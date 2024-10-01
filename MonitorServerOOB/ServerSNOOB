@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Path to the server list file
+# Check if the server list file is provided as an argument
+if [ -z "$1" ]; then
+    echo "Usage: $0 <server_list_file>"
+    exit 1
+fi
+
+# Path to the server list file
+SERVER_LIST="$1"
+
+# Check if the server name is provided as a second argument
+if [ -n "$2" ]; then
+    SERVER_NAME="$2"
+else
+    SERVER_NAME="default_server_name"
+fi
+
+# Print environment variables for debugging
+env
+
+# Print current user and permissions for debugging
+whoami
+ls -l /usr/local/bin/ipmitool
+
+# Loop through each line in the server list file
+if [ $SERVER_NAME = "default_server_name" ] ; then
+    #print all servers in file
+    while IFS=',' read -r name ip_address username password; do
+        if [ $name = "Name" ]; then
+            continue
+        fi
+        echo " ipmitool -I lanplus -H $ip_address -U $username -P $password "
+        /usr/local/bin/ipmitool -I lanplus -H "$ip_address" -U "$username" -P "$password" fru | grep "Product Serial"
+        # Execute the ipmitool command
+        # /usr/local/bin/ipmitool -I lanplus -H "$ip_address" -U "$username" -P "$password" fru | grep "Product Serial"
+        # ipmitool -I lanplus -H $ip_address -U $username -P $password fru | grep "Product Serial"
+        # echo " $name , $ip_address , $username , $password "
+        # ping -c 1 $ip_address
+    done < "$SERVER_LIST"
+else
+    while IFS=',' read -r name ip_address username password; do
+      # Execute the ipmitool command
+      if [ $name = $SERVER_NAME ] ; then
+        ipmitool -I lanplus -H "$ip_address" -U "$username" -P "$password" fru | grep "Product Serial"
+      fi
+    done < "$SERVER_LIST"
+fi
